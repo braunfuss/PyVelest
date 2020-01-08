@@ -188,7 +188,7 @@ ax.w_yaxis.set_pane_color((1.0, 1.0, 0.0, 0.6))
 ax.w_zaxis.set_pane_color((1.0, 1.0, 0.0, 0.7))
 
 plt.tight_layout()
-plt.savefig('statistical_plot.tiff')
+plt.savefig('statistical_plot.pdf')
 plt.close()
 
 #___________________MAKE SUMMARY

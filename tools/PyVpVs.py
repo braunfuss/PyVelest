@@ -193,7 +193,7 @@ def vpvs(d):
     ax.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
 
     plt.tight_layout()
-    plt.savefig('VpVs_%4.2f.tiff'%(slope),dpi=300)
+    plt.savefig('VpVs_%4.2f.pdf'%(slope),dpi=300)
     plt.close()
     print '\n+++ Vp/Vs=%.2f\n'%(slope)
 

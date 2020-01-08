@@ -41,7 +41,7 @@ def d2k(degrees, radius=6371):
     return degrees * (2.0 * radius * pi / 360.0)
 
 def reject_outliers(data, m = 2.):
-    
+
     d             = abs(data - median(data))
     mdev          = median(d)
     s             = d/mdev if mdev else 0.
@@ -51,12 +51,12 @@ def reject_outliers(data, m = 2.):
     inx           = where(s>m)
     bad_data      = data[inx]
     bad_data_ind  = where(s>m)
-    
+
     return good_data,good_data_ind[0],bad_data,bad_data_ind[0]
-     
+
 #___________________ Main class
 
-    
+
 class main():
 
     """
@@ -88,13 +88,13 @@ class main():
                 print "+++ It seems, You're running 'PyVelest' for the first time on your system!"
                 print "+++ You'll never see this message next time."
                 print "\n--> Extracting topography data , Please wait ...\n"
-                
+
                 tar = tarfile.open('IRN.tif.tar.gz', "r:gz")
                 tar.extractall()
                 tar.close()
 
             chdir(here)
-    
+
     #*-*-*-*-*- Remove old files and do empy all folders
     #
     # Remove files from velout.
@@ -120,7 +120,7 @@ class main():
         header2 = project_nm
 
         # write Headers
-        
+
         output.write(header1+'\n')
         output.write(header2+'\n')
 
@@ -228,7 +228,7 @@ class main():
     # Given the parameter file [./par/par.dat], read all VELEST
     # required parameters.
 
-    def read_par(self, par_file=path.join('par','par.dat')):   
+    def read_par(self, par_file=path.join('par','par.dat')):
 
         print "\n+++ Read VELEST input parameters ..."
 
@@ -240,17 +240,17 @@ class main():
             self.input_dic[i[0].strip()] = i[1].strip()
 
         # Read topo.dat
-        
+
         parfile = loadtxt(path.join('par','topo.dat'),skiprows=3,comments='#',dtype=str,delimiter='=')
         par_dic = {}
 
         for _ in parfile:
-            
+
             par_dic[_[0].strip()] = _[1].strip()
 
         self.lon_min, self.lon_max = float(par_dic['LON_MIN']), float(par_dic['LON_MAX'])
         self.lat_min, self.lat_max = float(par_dic['LAT_MIN']), float(par_dic['LAT_MAX'])
-        self.dep_min, self.dep_max = float(par_dic['DEP_MIN']), float(par_dic['DEP_MAX']) 
+        self.dep_min, self.dep_max = float(par_dic['DEP_MIN']), float(par_dic['DEP_MAX'])
         self.mag_min, self.mag_max = float(par_dic['MAG_MIN']), float(par_dic['MAG_MAX'])
         self.mag_flag              = par_dic['MAG_FLG']
         self.max_her               = float(par_dic['MAX_HER'])
@@ -284,18 +284,18 @@ class main():
         self.velmod_name = inp[16][1].strip()
 
         return self.input_dic
-    
+
     #*-*-*-*-*- write new VELEST parameter to velest.cmn file
     #
     # Write VELEST parameters into VELEST's cnv
     # file [./velinp/velest.cmn]
-    
+
     def write_par(self):
 
         self.project_nm = self.write_cmn(input_dic=self.input_dic, output='velest.cmn',project_nm=self.project_nm)
 
         print "+++ Write VELEST control file ..."
-                            
+
     #*-*-*-*-*- read velocity model and station files
     #
     # Read VELEST velocity file [./velinp/model.mod] and
@@ -305,7 +305,7 @@ class main():
     def read_VelSta(self,inp_vel=path.join('velinp','model.mod'), inp_sta=path.join('velinp','station.sta')):
 
         inp_vel=path.join('velinp',self.velmod_name)
-
+        print(self.velmod_name)
         sta_dic = {}
 
         with open(inp_sta) as f:
@@ -321,7 +321,7 @@ class main():
                     rfn = int(l[30:33].strip())
 
                     sta_dic[nm] = {'lat':lat, 'lon':lon, 'elv':elv, 'rfn':rfn}
-                    
+
 
         with open(inp_vel) as f:
 
@@ -338,7 +338,7 @@ class main():
                 if "P-VELOCITY MODEL" in l:
 
                     start_p_flag = True
-                
+
                 if "S-VELOCITY MODEL" in l:
 
                     start_s_flag = True
@@ -360,7 +360,7 @@ class main():
 
                     vel_dic['S'] = {'s_vel':s_vel, 's_dep':s_dep, 's_dmp':s_vdamp}
 
-        return vel_dic,sta_dic        
+        return vel_dic,sta_dic
 
     #*-*-*-*-*- Make synthetic velocity models
     #
@@ -372,7 +372,7 @@ class main():
         print "+++ Make synthetic velocity models ..."
 
         inp       = loadtxt(inp_syntvel,dtype=str,comments='#',delimiter=':')
-        
+
         vel_dic,_ = self.read_VelSta(inp_vel=path.join('velinp',self.velmod_name),inp_sta=self.input_dic['Stationfile'])
         pvel      = vel_dic['P']['p_vel']
         pdep      = vel_dic['P']['p_dep']
@@ -384,8 +384,8 @@ class main():
 
         except KeyError:
 
-           sdmp = ones(len(pdmp)) 
-            
+           sdmp = ones(len(pdmp))
+
         self.vel_mode      = inp[0][1].strip()
         self.dep_mode      = inp[1][1].strip()
         self.vel_min       = float(inp[2][1])
@@ -403,8 +403,8 @@ class main():
         self.bad_evnt_rms  = float(inp[14][1].strip())
         self.res_max_rw    = float(inp[15][1].strip())
         self.velmod_name    = inp[16][1].strip()
-       
-        
+
+
         if not path.exists(path.join('tmp',self.project_nm,'synthvel')):
 
             makedirs(path.join('tmp',self.project_nm,'synthvel'))
@@ -413,14 +413,14 @@ class main():
 
             rmtree(path.join('tmp',self.project_nm,'synthvel'))
             makedirs(path.join('tmp',self.project_nm,'synthvel'))
-            
+
         output      = path.join('tmp',self.project_nm,'synthvel')
         orig_velmod = array([vel_dic['P']['p_vel'],vel_dic['P']['p_dep'],vel_dic['P']['p_dmp']]).T
 
         # generate random model with no gradient
-        
+
         if self.grd == 0:
-            
+
             if self.vel_mode == "u":
 
                 vel = array([random.uniform(i-self.vel_dev*(1.0/j),i+self.vel_dev*(1.0/j),self.nmod) for i,j in zip(pvel,pdmp)]).T
@@ -446,7 +446,7 @@ class main():
 
             vel = []
             dep = []
-            
+
             if self.vel_mode == "u":
 
                 for _ in range(self.nmod):
@@ -473,59 +473,59 @@ class main():
                     dep.append(sorted(random.normal(i,self.dep_dev*(1.0/j))  for i,j in zip(orig_velmod[:,1],pdmp)))
 
             vel = array(vel)
-            dep = array(dep)            
+            dep = array(dep)
 
 
-        dep_org     = [i[1] for i in orig_velmod]          
+        dep_org     = [i[1] for i in orig_velmod]
         vel_org     = [i[0] for i in orig_velmod]
         dep_org[0]  = self.dep_min
 
         for d in range(len(dep)):
-            
-            dep[d][0] = self.dep_min      
 
-            
+            dep[d][0] = self.dep_min
+
+
         nl = len(dep[0]) # number of layers for each random model
-        
+
 
         # Write to a new model file
-        
-        
+
+
         for i in range(self.nmod):
-            
+
             fid = file(path.join(output,"model_"+str(i+1)+".mod"),'w')
             fid.write('%s%d%s\n'%("Model: model_",i+1,".mod"))
             fid.write('%s%d %s\n'%(" ",len(dep[0]),"         vel,depth,vdamp,phase(f5.2,5x,f7.2,2x,f7.3,3x,a1)"))
-            
+
             for j in range(len(dep[0])):
-                
+
                 if j==0:
-                    
+
                     fid.write('%5.2f %11.2f %8.3f %26s\n'%(vel[i][j],dep[i][j],pdmp[j],"P-VELOCITY MODEL"))
-                    
+
                 else:
-                    
+
                     fid.write('%5.2f %11.2f %8.3f\n'%(vel[i][j],dep[i][j],1.0))
-                    
+
             fid.write('%s%s\n'%(" ",len(dep[0])))
-            
+
             for j in range(len(dep[0])):
-                
+
                 if j==0:
-                    
+
                     fid.write('%5.2f %11.2f %8.3f %26s\n'%(vel[i][j]/self.vpvs,dep[i][j],pdmp[j],"S-VELOCITY MODEL"))
-                    
+
                 else:
-                    
+
                     fid.write('%5.2f %11.2f %8.3f\n'%(vel[i][j]/self.vpvs,dep[i][j],1.0))
-                    
+
             fid.close()
 
         # Plot synthetic models
 
         init_plotting_isi(9,9)
         plt.rcParams['axes.labelsize'] = 8
-        
+
         ax = plt.subplot(111)
         [i.set_linewidth(0.6) for i in ax.spines.itervalues()]
 
@@ -533,24 +533,24 @@ class main():
 
             y  = [-1*d for d in dep[i]]
             yy = [-1*d for d in dep_org]
-            
+
             x  = list(hstack([[m,n] for m,n in zip(vel[i],vel[i])]))
             xx = list(hstack([[m,n] for m,n in zip(vel_org,vel_org)]))
             y  = list(hstack([[m,n] for m,n in zip(y,y)]))
             yy = list(hstack([[m,n] for m,n in zip(yy,yy)]))
-            
+
             y.pop(0)
             yy.pop(0)
 
-            y.append(-1*self.dep_max)        
+            y.append(-1*self.dep_max)
             yy.append(-1*self.dep_max)
 
             if i == 0:
-                
+
                 ax.plot(x, y, 'r-', linewidth=1.0, label='Random')
-                
+
             else:
-                
+
                 ax.plot(x, y, 'r-', linewidth=1.0)
                 ax.set_ylim(ymin=-self.dep_max,ymax=-self.dep_min)
                 ax.set_title("Synthetic Models")
@@ -558,14 +558,14 @@ class main():
                 ax.set_ylabel("Depth (km)")
 
         velmod_org = [xx,yy]
-        
+
         ax.plot(xx, yy, 'k-', linewidth=1.0,label='Reference')
         ax.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
         ax.set_xlim(self.vel_min, self.vel_max)
         ax.locator_params(axis='x',nbins=7)
         ax.locator_params(axis='y',nbins=7)
         plt.legend(loc=1, fontsize=6)
-        
+
         ax_ = inset_axes(ax, width="30%",  height="40%", loc=3)
         [i.set_linewidth(0.6) for i in ax_.spines.itervalues()]
         ax_.tick_params(labelsize=6)
@@ -584,15 +584,15 @@ class main():
         ax_.set_ylim(0,self.dep_max)
         ax_.set_ylim(ax_.get_ylim()[::-1])
         ax_.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
-        
+
         plt.tight_layout()
-        plt.savefig(path.join('figs',self.project_nm,"synt_models_"+self.project_nm+'.tiff'))
+        plt.savefig(path.join('figs',self.project_nm,"synt_models_"+self.project_nm+'.pdf'))
         plt.close()
 
     #*-*-*-*-*- Run VELEST program
     #
     # Run VELEST for each model
-    # 
+    #
 
     def run_velest(self):
 
@@ -617,11 +617,11 @@ class main():
         if self.synthvel_files:
 
             copy('velest.cmn',path.join('tmp',self.project_nm))
-    
+
             for m,c in zip(self.synthvel_files,range(len(self.synthvel_files))):
 
                 tmp_cmn = open(path.join('tmp',self.project_nm,'tmp.cmn'),'w')
-                
+
                 with open(path.join('tmp',self.project_nm,'velest.cmn')) as f:
 
                     for line in f:
@@ -649,7 +649,7 @@ class main():
                             tmp_cmn.write(line)
 
                 tmp_cmn.close()
-                
+
                 move(path.join('tmp',self.project_nm,'tmp.cmn'),'velest.cmn')
 
                 print '   --- Run for synthetic model:',c+1
@@ -672,11 +672,11 @@ class main():
             print '   --- Run for initial velocity model ...'
             system('velest > /dev/null')
 
-    #*-*-*-*-*- Analyse VELEST results 
+    #*-*-*-*-*- Analyse VELEST results
     #
-    # Analyse VELEST results and plot 
+    # Analyse VELEST results and plot
     # them.
-    
+
     def analyse_velest_res(self):
 
         print "+++ Analyse VELEST outputs ..."
@@ -696,7 +696,7 @@ class main():
         self.nit       = int(self.input_dic['ittmax'])
 
         # if multiple synthetic velocity model has been defined
-        
+
         if self.synthvel_files:
 
             self.rms_res     = [[] for sm in self.synthvel_files]
@@ -712,10 +712,9 @@ class main():
             s_vel, s_dep     = [], [] # if nsp = 1, just one model will be  produced
 
             # read each VELEST output to extract inversion results
-            
+
             for sm in range(self.nmod):
-                
-                with open(path.join('velout',self.project_nm,'velest%d.out'%(sm+1))) as f:
+                with open(path.join('velout',self.project_nm,'velest%d.out'%(sm+1)), 'w+') as f:
 
                     self.p_vel_adj_flag = False
                     self.s_vel_adj_flag = False
@@ -743,7 +742,7 @@ class main():
 
                             self.s_vel_adj_flag = True
                             s_vel, s_dep        = [], []
-                            
+
                         if self.p_vel_adj_flag and 'Velocity model   1' not in l and len(l.split())==3:
 
                             tmp_vel.append((float(l.split()[2]),float(l.split()[1])))
@@ -754,20 +753,20 @@ class main():
 
                             s_vel.append(float(l.split()[0]))
                             s_dep.append(float(l.split()[2]))
-                                         
+
                         if not l.strip() and self.p_vel_adj_flag:
-                            
+
                             self.p_vel_adj_flag = False
                             self.vel_adj[sm].append(tmp_vel)
 
                         if not l.strip() and self.s_vel_adj_flag:
-                            
+
                             self.s_vel_adj_flag = False
 
                 self.svel['P'][sm].append(p_vel)
                 self.sdep['P'][sm].append(p_dep)
                 self.svel['S'][sm].append(s_vel)
-                self.sdep['S'][sm].append(s_dep)    
+                self.sdep['S'][sm].append(s_dep)
 
             self.p_outlier_models = []
             self.s_outlier_models = []
@@ -795,17 +794,17 @@ class main():
             self.s_outlier_models = list(set(self.s_outlier_models))
             self.s_good_models    = list(set(range(self.nmod)) - set(self.s_outlier_models))
 
-            # plot results, Time/Location/Velocity adjusment 
+            # plot results, Time/Location/Velocity adjusment
 
             init_plotting_isi(18,10)
             plt.rcParams['axes.labelsize'] = 7
-        
+
             output     = path.join('figs','invres_'+self.project_nm)
             iter_color = ['k','r','g','b','c','y','m','purple','pink','brown'] # iteration color, maximum 10
-                               
+
             ax1         = plt.subplot(2,3,1)
             [i.set_linewidth(0.6) for i in ax1.spines.itervalues()]
-            self.minmod = {} 
+            self.minmod = {}
             for nm in self.p_good_models:
                 x      = range(1,1+self.nit)
                 ax1.plot(x, [self.avg_abs_adj[nm][_][0] for _ in range(len(self.avg_abs_adj[nm]))], marker='o', ms=3, lw=.75,color='grey')
@@ -842,7 +841,7 @@ class main():
             ax2.legend(loc=1, fontsize=5)
             ax2.set_xticks(x)
             ax2.set_xticklabels(x)
-            
+
             ax3 = plt.subplot(2,3,3)
             [i.set_linewidth(0.6) for i in ax3.spines.itervalues()]
             self.minmod = {}
@@ -862,7 +861,7 @@ class main():
             ax3.legend(loc=1, fontsize=5)
             ax3.set_xticks(x)
             ax3.set_xticklabels(x)
-            
+
             ax4 = plt.subplot(2,3,4)
             [i.set_linewidth(0.6) for i in ax4.spines.itervalues()]
             self.minmod = {}
@@ -882,7 +881,7 @@ class main():
             ax4.legend(loc=1, fontsize=5)
             ax4.set_xticks(x)
             ax4.set_xticklabels(x)
-            
+
             ax5 = plt.subplot(2,3,5)
             [i.set_linewidth(0.6) for i in ax5.spines.itervalues()]
             self.minmod = {}
@@ -902,21 +901,21 @@ class main():
             ax5.legend(loc=1, fontsize=5)
             ax5.set_xticks(x)
             ax5.set_xticklabels(x)
-            
+
             ax6 = plt.subplot(2,3,6)
             [i.set_linewidth(0.6) for i in ax6.spines.itervalues()]
 
             x,y, ymax = [],[],[]
 
             for it,c,s in zip(self.vel_adj[self.ind],range(len(iter_color)),linspace(3,12,self.nit)[::-1]):
-                
+
                 color = iter_color[c]
-                                
+
                 for p in it:
-                    
+
                     x.append(p[0])
                     y.append(p[1])
-                    
+
                 ymax.append(max([abs(_) for _ in y]))
                 it = array(it)
                 ax6.plot([it[:,1],zeros_like(it[:,1])],[it[:,0],it[:,0]],
@@ -937,11 +936,11 @@ class main():
             ax6.axvline(lw=1,color='k',linestyle='--')
 
             plt.tight_layout()
-            plt.savefig(path.join('figs',self.project_nm,'velest_analytics_'+self.project_nm+'.tiff'))
+            plt.savefig(path.join('figs',self.project_nm,'velest_analytics_'+self.project_nm+'.pdf'))
             plt.close()
 
             # plot results, final velocity, station correction beside final location using minimum model
-            
+
             cnv_dic         = ReadCNV(inpcnv=path.join('velout',self.project_nm,'final_loc%d.cnv'%(self.ind+1)))
             vel_dic,sta_dic = self.read_VelSta(inp_vel=path.join('velinp',self.velmod_name),inp_sta=self.input_dic['Stationfile'])
 
@@ -962,7 +961,7 @@ class main():
             nump  = [cnv_dic[i]['arr']['wt'].count(0)+
                      cnv_dic[i]['arr']['wt'].count(1)+
                      cnv_dic[i]['arr']['wt'].count(2)+
-                     cnv_dic[i]['arr']['wt'].count(3) for i in cnv_dic] # event arrival time number             
+                     cnv_dic[i]['arr']['wt'].count(3) for i in cnv_dic] # event arrival time number
             refid = stref.index(max(stref))
 
             for _,__ in zip(range(len(vel_dic['P']['p_vel'])),range(len(vel_dic['P']['p_dep']))):
@@ -971,7 +970,7 @@ class main():
                 ovel.append(vel_dic['P']['p_vel'][__])
                 odep.append(vel_dic['P']['p_dep'][__])
                 odep.append(vel_dic['P']['p_dep'][__])
-                
+
             odep.pop(0)
             odep.append(self.dep_max)
 
@@ -979,21 +978,21 @@ class main():
             tmpdep_p = [[] for nm in range(self.nmod)]
 
             for nm in range(self.nmod):
-                
+
                 for _,__ in zip(self.svel_p[nm],self.sdep_p[nm]):
-                    
+
                     tmpvel_p[nm].append(_)
                     tmpvel_p[nm].append(_)
                     tmpdep_p[nm].append(__)
                     tmpdep_p[nm].append(__)
-                
+
                 tmpdep_p[nm].pop(0)
                 tmpdep_p[nm].append(self.dep_max)
 
                 self.svel_p[nm] = tmpvel_p[nm]
                 self.sdep_p[nm] = tmpdep_p[nm]
 
-            
+
             # plot-No 1, velocity model
 
             gs  = gridspec.GridSpec(4, 4)
@@ -1004,7 +1003,7 @@ class main():
 
             ax1 = fig.add_subplot(gs[0:2,0:2])
             [i.set_linewidth(0.6) for i in ax1.spines.itervalues()]
-            
+
             for nm in self.p_good_models:
                 ax1.plot(self.svel_p[nm],self.sdep_p[nm],color='red',linewidth=1.0)
             ax1.plot(self.svel_p[0],self.sdep_p[0],color='red',linewidth=1.0,label='Inverted')
@@ -1028,7 +1027,7 @@ class main():
             ax1_ = inset_axes(ax1, width="30%",  height="40%", loc=3)
             [i.set_linewidth(0.6) for i in ax1_.spines.itervalues()]
             ax1_.tick_params(labelsize=6)
-        
+
             binwidth = 2.0
             data     = self.orig_dep
             bins     = arange(min(data), max(data) + binwidth, binwidth)
@@ -1044,7 +1043,7 @@ class main():
             ax1_.set_ylim(0,self.dep_max)
             ax1_.set_ylim(ax1_.get_ylim()[::-1])
             ax1_.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
-            
+
             # plot results, station correction
 
             stnm  = []
@@ -1069,7 +1068,7 @@ class main():
             stcor = array(stcor)
 
             # Plot station corrections
-            
+
             ax2 = fig.add_subplot(gs[0:2,2:])
             [i.set_linewidth(0.6) for i in ax2.spines.itervalues()]
 
@@ -1175,7 +1174,7 @@ class main():
 
             lat_diff = []
             lon_diff = []
-            
+
             for i in sorted(self.orig_cnv.keys()):
 
                 i_lon = self.orig_cnv[i]['lon']
@@ -1189,16 +1188,16 @@ class main():
                     f_lat  = self.mmod_cnv[f]['lat']
                     f_dep  = self.mmod_cnv[f]['dep']
                     f_rms  = self.mmod_cnv[f]['rms']
-                    
+
                     dx     = f_lon - i_lon
                     dy     = f_lat - i_lat
                     diff_h = sqrt(dx**2 + dy**2)
-                    
+
                     diff_ot = i-f
                     diff_ot = abs(diff_ot.total_seconds())
-                    
+
                     if diff_ot <= self.max_tdf and diff_h <= self.max_ldf:
-                        
+
                         olon.append(i_lon)
                         olat.append(i_lat)
                         odep.append(i_dep)
@@ -1220,12 +1219,12 @@ class main():
             mlat = array(mlat)
             mdep = array(mdep)
             mrms = array(mrms)
-            
+
             ax3 = fig.add_subplot(gs[2:,0])
             [i.set_linewidth(0.6) for i in ax3.spines.itervalues()]
-            
+
             for (x,xx) in zip(olon,mlon):
-                
+
                 if xx-x>0:
 
                     ax3.plot([x,x],[d2k(xx-x),0],'r-o',markevery=olon.size, ms=3, lw=.5, mew=.1, mec='k')
@@ -1233,7 +1232,7 @@ class main():
                 else:
 
                     ax3.plot([x,x],[d2k(xx-x),0],'b-o',markevery=olon.size, ms=3, lw=.5, mew=.1, mec='k')
-                    
+
             ax3.set_xlabel('Longitude')
             ax3.set_ylabel('Dislocation (km)')
             ax3.set_ylim(-max([abs(_) for _ in ax3.get_ylim()]),max([abs(_) for _ in ax3.get_ylim()]))
@@ -1247,7 +1246,7 @@ class main():
 
             ax4 = fig.add_subplot(gs[2:,1])
             [i.set_linewidth(0.6) for i in ax4.spines.itervalues()]
-            
+
             for (y,yy) in zip(olat,mlat):
 
                 if yy-y>0:
@@ -1268,7 +1267,7 @@ class main():
             ax4.locator_params(axis='x',nbins=5)
             ax4.locator_params(axis='y',nbins=5)
             ax4.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
-            
+
             ax5 = fig.add_subplot(gs[2:,2])
             [i.set_linewidth(0.6) for i in ax5.spines.itervalues()]
 
@@ -1291,10 +1290,10 @@ class main():
             ax5.locator_params(axis='x',nbins=5)
             ax5.locator_params(axis='y',nbins=5)
             ax5.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
-            
+
             ax6 = fig.add_subplot(gs[2:,3])
             [i.set_linewidth(0.6) for i in ax6.spines.itervalues()]
-            
+
             bns = arange(0, self.max_rms + self.max_rms/20.0, self.max_rms/20.0)
             ax6.hist([orms,mrms],color=['r','b'],label=['Initial','Relocated'], histtype='bar',bins=bns, rwidth=0.8, edgecolor='gray')
             ax6.set_xlabel('RMS (s)')
@@ -1306,11 +1305,11 @@ class main():
             ax6.legend(loc=1, fontsize=5)
 
             print '+++ Minimum model id:',self.ind+1
-            
+
             plt.tight_layout()
-            plt.savefig(path.join('figs',self.project_nm,'velest_final_'+self.project_nm+'.tiff'))
+            plt.savefig(path.join('figs',self.project_nm,'velest_final_'+self.project_nm+'.pdf'))
             plt.close()
-         
+
         # if no synthetic velocity model has been defined (single mode) * NOT IMPLEMENTED YET!
 
         else:
@@ -1321,7 +1320,7 @@ class main():
     #
     # Plot some statistical figures
     # about data.
-    
+
     def plot_data(self):
 
         inp_syntvel    = path.join('par','syntvel.dat')
@@ -1335,7 +1334,7 @@ class main():
         self.vel_dev   = float(inp[6][1])
         self.dep_dev   = float(inp[7][1])
         self.nmod      = int(inp[8][1].strip())
-        self.vpvs      = float(inp[9][1])  
+        self.vpvs      = float(inp[9][1])
 
         if not path.exists('figs'):
 
@@ -1345,7 +1344,7 @@ class main():
 
             rmtree(path.join('figs',self.project_nm))
             mkdir(path.join('figs',self.project_nm))
-    
+
         else:
 
             mkdir(path.join('figs',self.project_nm))
@@ -1364,9 +1363,9 @@ class main():
                     n   = l[2:6].strip()
                     lat = ll.Latitude(degree=float(l[6:8]), minute=float(l[8:13])).decimal_degree
                     lon = ll.Longitude(degree=float(l[14:17]), minute=float(l[17:22])).decimal_degree
-                    
+
                     self.sta_list[n] = {'lon':lon,'lat':lat}
-                    
+
         print "+++ Plotting data statistics ..."
 
         vel   = []
@@ -1395,7 +1394,7 @@ class main():
             vel.append(vel_dic['P']['p_vel'][__])
             dep.append(vel_dic['P']['p_dep'][__])
             dep.append(vel_dic['P']['p_dep'][__])
-            
+
         dep.pop(0)
         dep.append(self.dep_max)
 
@@ -1432,7 +1431,7 @@ class main():
         self.x,self.y = self.tehran[:,0], self.tehran[:,1]
 
         self.m.plot(self.x,self.y, marker=None,color='r',linewidth=2.0,zorder=1)
-        
+
         ax2.text(51.3890, 35.6892, '$Tehran$', clip_on=True)
         ax2.plot(51.3700, 35.6892,marker='s', markersize=5, color='k')
 
@@ -1482,19 +1481,19 @@ class main():
         dy = dy
         fs     = 0.8*plt.rcParams['font.size']
         c      = evrms
-        
+
         im  = ax2.scatter(evlon,evlat,c=c,marker='.',s=50,linewidth=None,edgecolor='black',cmap=plt.cm.jet, vmin=0.0, vmax=self.max_rms)
         ax2.plot(stlon,stlat, marker='^', ms=5, mec='k', mew=1.5, mfc='gray', ls='')
         ax2.plot(stlon[refid],stlat[refid], marker='^', ms=5, mec='gray', mew=1.5, mfc='k', ls='',label='Reference')
-       
+
         for x,y,t in zip (stlon,stlat,stnm):
 
             if self.plt_stn == 'False': break
-            
+
             if self.lon_min<=x<=self.lon_max and self.lat_min<=y<=self.lat_max:
-                
+
                 ax2.text(x,y-dy*.05,t,fontsize=fs, ha='center',bbox=dict(facecolor='w', edgecolor='k', boxstyle='round,pad=.2'))
-                
+
         ax2.locator_params(axis='x',nbins=5)
         ax2.locator_params(axis='y',nbins=5)
         ax2.legend(loc=1)
@@ -1506,7 +1505,7 @@ class main():
         cb.update_ticks()
         ax2.set_xlim(self.lon_min,self.lon_max)
         ax2.set_ylim(self.lat_min,self.lat_max)
-        
+
         # plot-No 3, depth-number_of_station distribution
 
         ax3 = plt.subplot(2,2,3)
@@ -1544,18 +1543,18 @@ class main():
         tick_locator = ticker.MaxNLocator(nbins=6)
         cb.locator   = tick_locator
         cb.update_ticks()
-        
+
         plt.tight_layout()
-        plt.savefig(path.join('figs',self.project_nm,'data_'+self.project_nm+'.tiff'))
+        plt.savefig(path.join('figs',self.project_nm,'data_'+self.project_nm+'.pdf'))
         plt.close()
 
 
-    ############################################## 
+    ##############################################
     #*-*-*-*-*- Make final reports
     #
     # Make final reports
     # them.
-    
+
     def mk_report(self):
 
         print "+++ Preparing reports ..."
@@ -1578,15 +1577,15 @@ class main():
         self.repfi.write('\nIteration  RMS [sec]\n')
 
         for i,r in zip(range(self.nit+1),self.rms_res[self.ind]):
-            
+
             self.repfi.write('  %2d       %5.3f\n'%(i,r))
-                         
+
         self.repfi.write('\nVel[km/s]   Dep[km]\n')
 
         self.min_mod[1][0] = 0.0 # set first depth to zero
-        
+
         for v,d in zip(self.min_mod[0][::2],self.min_mod[1][::2]):
-            
+
             self.repfi.write(' %4.2f     %4.1f\n'%(v,d))
 
         self.repfi.write('\n# 2- Mean velocity model:\n\n')
@@ -1594,15 +1593,15 @@ class main():
         self.repfi.write('Vel[km/s]   Dep[km]\n')
 
         self.mean_mod[1][0] = 0.0 # set first depth to zero
-        
+
         for v,d in zip(self.mean_mod[0][::2],self.mean_mod[1][::2]):
-            
+
             self.repfi.write(' %4.2f     %4.1f\n'%(v,d))
-            
+
         self.repfi.close()
 
         # copy final loc and station_corr files
-        
+
         copy(path.join('velout',self.project_nm,'final_loc'+str(self.ind+1)+'.cnv'),path.join('figs',self.project_nm,'fin_hyp.cnv'))
         copy(path.join('velout',self.project_nm,'stations_corr'+str(self.ind+1)+'.sta'),path.join('figs',self.project_nm,'sta_cor.out'))
 
@@ -1613,75 +1612,75 @@ class main():
         self.mean_mod[1][0] = self.dep_min # set first depth to highest elevation
 
         # min model
-        
+
         self.modout.write(' Model: min.mod\n')
         self.modout.write(' %2d        vel,depth,vdamp,phase(f5.2,5x,f7.2,2x,f7.3,3x,a1)\n'%(len(self.min_mod[0][::2])))
 
         # P-Velocity
-        
+
         flag = True
-        
+
         for v,d in zip(self.min_mod[0][::2],self.min_mod[1][::2]):
 
             if flag:
 
                 self.modout.write(' %4.2f       %5.2f    1.000           P-VELOCITY MODEL\n'%(v,d))
-                
+
                 flag = False
 
                 continue
-                
+
             self.modout.write(' %4.2f       %5.2f    1.000\n'%(v,d))
-            
+
         self.modout.write(' %2d\n'%(len(self.min_mod[0][::2])))
 
         # S-Velocity
-        
+
         flag = True
-        
+
         for v,d in zip(self.min_mod[0][::2],self.min_mod[1][::2]):
-            
+
             if flag:
 
                 self.modout.write(' %4.2f       %5.2f    1.000           S-VELOCITY MODEL\n'%(v/self.vpvs,d))
-                
+
                 flag = False
 
                 continue
-                
+
             self.modout.write(' %4.2f       %5.2f    1.000\n'%(v/self.vpvs,d))
 
         # now append mean model
 
         self.modout.write('\n')
-        
+
         self.modout.write(' Model: mean.mod\n')
         self.modout.write(' %2d        vel,depth,vdamp,phase(f5.2,5x,f7.2,2x,f7.3,3x,a1)\n'%(len(self.mean_mod[0][::2])))
 
         # P-Velocity
-        
+
         flag = True
-        
+
         for v,d in zip(self.mean_mod[0][::2],self.mean_mod[1][::2]):
 
             if flag:
 
                 self.modout.write(' %4.2f       %5.2f    1.000           P-VELOCITY MODEL\n'%(v,d))
-                
+
                 flag = False
 
                 continue
-                
+
             self.modout.write(' %4.2f       %5.2f    1.000\n'%(v,d))
-            
+
         self.modout.write(' %2d\n'%(len(self.mean_mod[0][::2])))
 
         # S-Velocity
-       
+
         flag = True
-       
+
         for v,d in zip(self.mean_mod[0][::2],self.mean_mod[1][::2]):
-            
+
             if flag:
 
                 self.modout.write(' %4.2f       %5.2f    1.000           S-VELOCITY MODEL\n'%(v/self.vpvs,d))
@@ -1689,15 +1688,15 @@ class main():
                 flag = False
 
                 continue
-                
+
             self.modout.write(' %4.2f       %5.2f    1.000\n'%(v/self.vpvs,d))
 
         self.modout.write('\n')
-        
+
         self.modout.close()
-        
+
         # locate using new velociy model and make a comparison
-        
+
         here = getcwd()
 
         hrz_err_i = []
@@ -1715,14 +1714,14 @@ class main():
         hrz_err_rw = []
         dep_err_rw = []
         rms_rw     = []
-        
+
         if path.exists(path.join('tmp',self.project_nm,'report')):
-            
+
             rmtree(path.join('tmp',self.project_nm,'report'))
             mkdir(path.join('tmp',self.project_nm,'report'))
-            
+
         else:
-            
+
             mkdir(path.join('tmp',self.project_nm,'report'))
 
 
@@ -1730,7 +1729,7 @@ class main():
         mkdir(path.join('tmp',self.project_nm,'report','final'))
 
         # copy "select.out" and "STATION0.HYP" from "tools" directory
-        
+
         copy(path.join('tools','select.out'),path.join('tmp',self.project_nm,'report','initial'))
         copy(path.join('tools','STATION0.HYP'),path.join('tmp',self.project_nm,'report','initial'))
 
@@ -1755,12 +1754,12 @@ class main():
                     rms_i.append(float(l[62:67]))
                     hrz_err_i.append(float(l[67:72]))
                     dep_err_i.append(float(l[72:77]))
-                    
+
         chdir(here)
 
         # make final result
         # copy "select.out" from "tools" directory
-        
+
         copy(path.join('tools','select.out'),path.join('tmp',self.project_nm,'report','final'))
 
         vel        = []
@@ -1774,11 +1773,11 @@ class main():
             for l in f:
 
                 if 'Vel[km/s]   Dep[km]' in l:
-                    
+
                     if vel_flag:
 
                         vel_flag = False
-                        
+
                     else:
 
                         vel_flag = True
@@ -1787,17 +1786,17 @@ class main():
                 if start_flag and not l.strip():
 
                     start_flag = False
-                                   
+
                 if 'Vel[km/s]   Dep[km]' not in l and vel_flag and start_flag:
-                    
+
                     vel.append(l)
-                
+
         copy(path.join('figs',self.project_nm,'sta_cor.out'),path.join('tmp',self.project_nm,'report','final'))
-                
+
         chdir(path.join('tmp',self.project_nm,'report','final'))
 
         sta_cor = []
-        
+
 
         with open('sta_cor.out') as f:
 
@@ -1820,34 +1819,34 @@ class main():
         station0_hyp = open('STATION0.HYP','w')
 
         RESET = """RESET TEST(02)=500.0
-RESET TEST(07)=-3.0                                                            
-RESET TEST(08)=2.6                                                             
-RESET TEST(09)=0.001                                                           
-RESET TEST(11)=99.0                                                            
-RESET TEST(13)=5.0                                                             
-RESET TEST(34)=1.5                                                             
-RESET TEST(35)=2.5                                                             
-RESET TEST(36)=0.0                                                             
-RESET TEST(41)=20000.0                                                         
-RESET TEST(43)=5.0                                                             
-RESET TEST(51)=3.6                                                             
-RESET TEST(50)=1.0                                                             
-RESET TEST(56)= 1.0                                                            
-RESET TEST(58)= 99990.0                                                        
-RESET TEST(40)=1.0                                                             
-RESET TEST(60)=0.0                                                             
-RESET TEST(71)=1.0                                                             
-RESET TEST(75)=1.0                                                             
-RESET TEST(76)=1.1725                                                            
-RESET TEST(77)=0.0021                                                         
-RESET TEST(78)=-2.237                                                           
-RESET TEST(79)=1.0                                                             
-RESET TEST(80)=3.0                                                             
-RESET TEST(81)=1.0                                                             
-RESET TEST(82)=1.0                                                             
-RESET TEST(83)=1.0                                                             
-RESET TEST(88)=1.0                                                             
-RESET TEST(85)=0.1                                                             
+RESET TEST(07)=-3.0
+RESET TEST(08)=2.6
+RESET TEST(09)=0.001
+RESET TEST(11)=99.0
+RESET TEST(13)=5.0
+RESET TEST(34)=1.5
+RESET TEST(35)=2.5
+RESET TEST(36)=0.0
+RESET TEST(41)=20000.0
+RESET TEST(43)=5.0
+RESET TEST(51)=3.6
+RESET TEST(50)=1.0
+RESET TEST(56)= 1.0
+RESET TEST(58)= 99990.0
+RESET TEST(40)=1.0
+RESET TEST(60)=0.0
+RESET TEST(71)=1.0
+RESET TEST(75)=1.0
+RESET TEST(76)=1.1725
+RESET TEST(77)=0.0021
+RESET TEST(78)=-2.237
+RESET TEST(79)=1.0
+RESET TEST(80)=3.0
+RESET TEST(81)=1.0
+RESET TEST(82)=1.0
+RESET TEST(83)=1.0
+RESET TEST(88)=1.0
+RESET TEST(85)=0.1
 RESET TEST(91)=0.1
 
 """
@@ -1863,7 +1862,7 @@ RESET TEST(91)=0.1
         for v in vel:
 
             station0_hyp.write(v)
-            
+
         station0_hyp.write('\n')
         station0_hyp.write('15.0   50. 300. %4.2f    \n'%(self.vpvs))
         station0_hyp.write('SLT\n')
@@ -1900,7 +1899,7 @@ RESET TEST(91)=0.1
                 if ' station     p residual rms dev  no p     s residual rms dev  no s' in l:
 
                     start_flag = True
-                
+
 
                 if start_flag and not l.strip():
 
@@ -1917,8 +1916,8 @@ RESET TEST(91)=0.1
 
                     if len(l.strip())==65 and l[44:52].strip():
 
-                        self.sta_cor[l[1:5]]['s']='%+6.2f'%float(l[44:52])    
-        
+                        self.sta_cor[l[1:5]]['s']='%+6.2f'%float(l[44:52])
+
 
         tmp = open('tmp','w')
 
@@ -1958,7 +1957,7 @@ RESET TEST(91)=0.1
 
                     bad_events.append(l)
 
-                   
+
         chdir(here)
 
         report = open(path.join('figs',self.project_nm,'report.dat'),'a')
@@ -1980,9 +1979,9 @@ RESET TEST(91)=0.1
 
         sta_wt     = {}
         bad_evnt   = list(array(bad_events).copy())
-        bad_events = [] 
+        bad_events = []
         tmp        = open('select_rw.out','w')
-                               
+
         # re-weight each phase on each station, base on the mean residual of that station
 
         for s in self.sta_cor:
@@ -2006,8 +2005,8 @@ RESET TEST(91)=0.1
                 w     = linspace(0,abs(s_res),5)
                 w_dic = {(w[x],w[x+1]):x for x in range(4)}
                 w_dic[(w[-1],99.9)] = 4
-                sta_wt[s]['s'] = w_dic         
-        
+                sta_wt[s]['s'] = w_dic
+
         with open('hyp.out') as f:
 
             for l in f:
@@ -2035,7 +2034,7 @@ RESET TEST(91)=0.1
                                 l = l[0:14]+sta_w+l[15:]
                     except KeyError:
                         pass
-                    
+
                 tmp.write(l)
 
         tmp.close()
@@ -2093,7 +2092,7 @@ RESET TEST(91)=0.1
         report.close()
 
         # make a new select.out with removed bad events
-        
+
         rmd_bad_evt = open(path.join('figs',self.project_nm,'select.out'),'w')
         bad_evt     = open(path.join('figs',self.project_nm,'bad_select.out'),'w')
         event_list  = [[]]
@@ -2106,17 +2105,17 @@ RESET TEST(91)=0.1
             for l in f:
 
                 if not l.strip():
-                    
+
                     event_list.append([])
                     flag_correct = True
                     flag_LT1     = True
                     c+=1
-                   
+
                 if l.strip() and l[79:80] == '1' and not l[48:51].strip() and flag_LT1:
 
                     flag_LT1     = False
                     flag_correct = False
-                    
+
                 if l.strip() and flag_correct:
                     event_list[c].append(l)
 
@@ -2130,7 +2129,7 @@ RESET TEST(91)=0.1
 
             for __ in bad_evnt:
 
-                if ' Date' not in __:               
+                if ' Date' not in __:
 
                     tmp = __[:11]
 
@@ -2163,7 +2162,7 @@ RESET TEST(91)=0.1
                     if yer == 0:
 
                         yer = 1900
-                            
+
                     try:
 
                         t2 = dt(yer,mon,day,H,M,sec,msec)
@@ -2174,12 +2173,12 @@ RESET TEST(91)=0.1
 
 
                     df = t2-t1
-                                 
+
                     if abs(df.total_seconds())<self.max_tdf:
 
                         flag_good = False
                         flag_bad  = True
-                        
+
             if flag_good:
 
                 for l in _:
@@ -2193,22 +2192,22 @@ RESET TEST(91)=0.1
 
                     bad_evt.write(l)
                 bad_evt.write('\n')
-                
+
         rmd_bad_evt.close()
         bad_evt.close()
 
 
-    ############################################## 
+    ##############################################
     #*-*-*-*-*- Plot path
     #
     # Plot path between event-station pairs
-    # 
-    
+    #
+
     def plot_path(self):
 
         init_plotting_isi(18,15)
         plt.rcParams['axes.labelsize'] = 9
-        
+
         nordic_inp = path.join('tools','select.out')
         evt_dic    = Read_Nordic(nordic_inp)
 
@@ -2230,7 +2229,7 @@ RESET TEST(91)=0.1
         xtmp  = []
         ytmp  = []
         ztmp  = []
-            
+
         for evt in evt_dic:
 
             elat  = evt_dic[evt]['HEADER']['L1']['Lat']
@@ -2242,7 +2241,7 @@ RESET TEST(91)=0.1
             evdep.append(edep)
 
             for sta in evt_dic[evt]['PHASE']:
-                
+
                 _ = sta.ljust(4)
 
                 try:
@@ -2264,7 +2263,7 @@ RESET TEST(91)=0.1
         xtmp = array(xtmp)
         ytmp = array(ytmp)
         ztmp = array(ztmp)
-        
+
         for d in range(len(dep)-1):
 
             x = xtmp[(ztmp>dep[d]) & (ztmp<=dep[d+1])]
@@ -2279,10 +2278,10 @@ RESET TEST(91)=0.1
         z = ztmp[ztmp>dep[-1]]
 
         if x.size:
-            
+
             al.plot(x, z, zorder=2, ls='', marker='*', ms=6, lw=.2, label='%d'%(d+2))
             ar.plot(y, z, zorder=2, ls='', marker='*', ms=6, lw=.2, label='%d'%(d+2))
-            
+
         al.set_xlim(self.lon_min,self.lon_max)
         al.set_ylim(0,self.dep_max)
         al.set_ylim(al.get_ylim()[::-1])
@@ -2304,7 +2303,7 @@ RESET TEST(91)=0.1
         al.locator_params(axis='x', nbins=5)
         al.locator_params(axis='y', nbins=8)
         #ar.legend(loc=4, title='Events in Layer #', ncol=2)
-        
+
         # plot some features
 
         self.m        = Basemap(llcrnrlon=self.lon_min, llcrnrlat=self.lat_min,urcrnrlon=self.lon_max, urcrnrlat=self.lat_max,
@@ -2358,7 +2357,7 @@ RESET TEST(91)=0.1
         c   = evrms
         im  = ax.scatter(evlon,evlat,c=c,marker='.',s=75,edgecolor='black',cmap=plt.cm.jet,zorder=4,vmin=0.0, vmax=self.max_rms)
         ax.plot(stlon,stlat, marker='^', ms=5, mec='gray', mew=1.5, mfc='k', ls='',zorder=5)
-                
+
         ax.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
         ax.locator_params(axis='x',nbins=5)
         ax.locator_params(axis='y',nbins=5)
@@ -2372,15 +2371,15 @@ RESET TEST(91)=0.1
         ax.set_ylim(self.lat_min,self.lat_max)
         ax.set_title('Horizontal Path Coverage')
 
-        plt.savefig(path.join('figs',self.project_nm,'path_'+self.project_nm+'.tiff'))
+        plt.savefig(path.join('figs',self.project_nm,'path_'+self.project_nm+'.pdf'))
         plt.close()
 
 
-    ############################################## 
+    ##############################################
     #*-*-*-*-*- Plot final results
     #
     # Make final figures using final location.
-    
+
     def plot_final(self):
 
         print "+++ Plotting final figures, Please wait ..."
@@ -2393,46 +2392,46 @@ RESET TEST(91)=0.1
             rgb    = rgb/255.
             s      = shape(rgb)
             colors = ['red', 'green', 'blue']
-            
+
             for c in colors:
-                
+
                 i = colors.index(c)
                 x = rgb[:, i+1]
 
                 if discrete:
-                    
+
                     if sym:
-                        
+
                         dic[c]      = zeros((2*s[0]+1, 3), dtype=float)
                         dic[c][:,0] = linspace(0,1,2*s[0]+1)
                         vec         = concatenate((x ,x[::-1]))
-                        
+
                     else:
-                        
+
                         dic[c]      = zeros((s[0]+1, 3), dtype=float)
                         dic[c][:,0] = linspace(0,1,s[0]+1)
                         vec         = x
-                        
+
                     dic[c][1:, 1] = vec
                     dic[c][:-1,2] = vec
-                       
+
                 else:
-                    
+
                     if sym:
-                        
+
                         dic[c]      = zeros((2*s[0], 3), dtype=float)
                         dic[c][:,0] = linspace(0,1,2*s[0])
                         vec         = concatenate((x ,x[::-1]))
-                        
+
                     else:
-                        
+
                         dic[c]      = zeros((s[0], 3), dtype=float)
                         dic[c][:,0] = linspace(0,1,s[0])
                         vec         = x
-                        
+
                     dic[c][:, 1] = vec
                     dic[c][:, 2] = vec
-           
+
             return dic
 
 
@@ -2442,7 +2441,7 @@ RESET TEST(91)=0.1
 
             vals, vecs = linalg.eigh(cov)
             order      = vals.argsort()[::-1]
-            
+
             return vals[order], vecs[:,order]
 
         def extract_hyp(hyp_path, region):
@@ -2484,7 +2483,7 @@ RESET TEST(91)=0.1
 
                         ot   = '%4d%02d%02d %02d%02d%04.1f'%(y,m,d,H,M,S)
                         ot   = dt.strptime(ot,'%Y%m%d %H%M%S.%f')
-                        hyp_dic[ot] = {} 
+                        hyp_dic[ot] = {}
                         hyp_dic[ot]['evlat'] = nordic_dic[evt]['HEADER']['L1']['Lat']
                         hyp_dic[ot]['evlon'] = nordic_dic[evt]['HEADER']['L1']['Lon']
                         hyp_dic[ot]['evdep'] = nordic_dic[evt]['HEADER']['L1']['Dep']
@@ -2498,9 +2497,9 @@ RESET TEST(91)=0.1
 
                                 hyp_dic[ot]['evdmin'].append(nordic_dic[evt]['PHASE'][k]['P'][Pphase]['DIS'])
 
-                        hyp_dic[ot]['evdmin'] = min(hyp_dic[ot]['evdmin'])        
+                        hyp_dic[ot]['evdmin'] = min(hyp_dic[ot]['evdmin'])
                         hyp_dic[ot]['evrms']  = nordic_dic[evt]['HEADER']['L1']['RMS']
-                        
+
                         if nordic_dic[evt]['HEADER']['LE']['LAE'] and nordic_dic[evt]['HEADER']['LE']['LOE']:
 
                             hyp_dic[ot]['evgap'] = nordic_dic[evt]['HEADER']['LE']['GAP']
@@ -2535,21 +2534,21 @@ RESET TEST(91)=0.1
             ds  = gdal.Open('cliped.tif')
             z   = ds.ReadAsArray()[::-1,:]
             lnv = float(self.bat_dep) # replace large negative values in z
-            
+
             if z.min() <= -1000.0:
 
                 bad_val = z.min()
-                
+
                 for i in z:
 
                     i[i==bad_val] = lnv
-                
+
             savez('cliped.npz',elevation=array(z))
             remove('cliped.tif')
 
 
         #___________________ START
-            
+
 
         #_________ Extract topography
 
@@ -2559,7 +2558,7 @@ RESET TEST(91)=0.1
                     res_x=self.res_x, res_y=self.res_y)
 
             with load("cliped.npz") as dem:
-                
+
                 self.elev = dem['elevation']
 
             remove("cliped.npz")
@@ -2598,16 +2597,16 @@ RESET TEST(91)=0.1
                         if self.tdiff <= self.max_tdf:
 
                             self.events.append([self.ini[d]['evlon'],self.ini[d]['evlat'],
-                                                self.fin[e]['evlon'],self.fin[e]['evlat']])               
+                                                self.fin[e]['evlon'],self.fin[e]['evlat']])
 
             self.events = array(self.events)
-            self.color  = self.events[:,2]    # color --> dep 
+            self.color  = self.events[:,2]    # color --> dep
 
             #_________ Plot
 
             init_plotting_isi(18,15)
             plt.rcParams['axes.labelsize'] = 9
-        
+
             ax  = plt.subplot(1,1,1)
             [i.set_linewidth(0.6) for i in ax.spines.itervalues()]
             s   = 10
@@ -2643,14 +2642,14 @@ RESET TEST(91)=0.1
 
                 self.m.drawmapboundary(fill_color='aqua')
                 self.m.fillcontinents(color='#ddaa66',lake_color='aqua')
-                    
+
             #____ Tehran border, symbol and label
 
             self.tehran      = loadtxt(path.join('gdb','db','IRN_PROV','tehran.poly'))
             self.x, self.y   = self.tehran[:,0], self.tehran[:,1]
-            
+
             self.m.plot(self.x,self.y, marker=None,color='r',linewidth=2.0,zorder=1)
-            
+
             ax.text(51.3890, 35.6892, '$Tehran$', clip_on=True)
             ax.plot(51.3700, 35.6892,marker='s', markersize=5, color='k')
 
@@ -2659,9 +2658,9 @@ RESET TEST(91)=0.1
             if self.dbc < 2:
 
                 if self.mag_flag == 'True':
-                    
+
                     for i in range(6):
-                        
+
                         if len(self.events[(self.events[:,3]>i) & (self.events[:,3]<i+1)]):
 
                             self.tmp = self.events[(self.events[:,3]>i) & (self.events[:,3]<i+1)]
@@ -2691,7 +2690,7 @@ RESET TEST(91)=0.1
                     im = ax.scatter(self.x,self.y, s=50, c='red',
                                     vmin=self.dep_min, vmax=self.dep_max,
                                    alpha=1.0, cmap=plt.cm.bwr, edgecolor='w',zorder=20)
-                
+
                 for _ in db:
 
                     pos    = self.m(db[_]['elipse'][0][0],db[_]['elipse'][0][1])
@@ -2709,7 +2708,7 @@ RESET TEST(91)=0.1
 
                     ax.arrow(x0,y0,diff([x0,x1])[0],diff([y0,y1])[0],
                              head_length=0.01,head_width=0.01,width=0.002,fc='b', ec='b')
-                  
+
 
             #____ Faults
 
@@ -2771,13 +2770,13 @@ RESET TEST(91)=0.1
 
             ax.set_aspect('equal')
 
-            plt.savefig(path.join('figs',self.project_nm,'topo_'+n+'.tiff'),dpi=300)
+            plt.savefig(path.join('figs',self.project_nm,'topo_'+n+'.pdf'),dpi=300)
             plt.close()
 
             self.dbc+=1
 
         #____ Final plots
-                  
+
         # plot results, station correction
 
         self.sta_list = {}
@@ -2791,7 +2790,7 @@ RESET TEST(91)=0.1
                     n   = l[2:6].strip()
                     lat = ll.Latitude(degree=float(l[6:8]), minute=float(l[8:13])).decimal_degree
                     lon = ll.Longitude(degree=float(l[14:17]), minute=float(l[17:22])).decimal_degree
-                    
+
                     self.sta_list[n] = {'lon':lon,'lat':lat}
 
         self.st_cod = []
@@ -2810,7 +2809,7 @@ RESET TEST(91)=0.1
             self.st_cod.append(n)
             self.st_lat.append(float(self.sta_list[n]['lat']))
             self.st_lon.append(float(self.sta_list[n]['lon']))
-            
+
             if self.sta_cor[s]['p'].strip():
 
                 self.st_ptc.append(float(self.sta_cor[s]['p']))
@@ -2831,13 +2830,13 @@ RESET TEST(91)=0.1
             self.ev_lat.append(self.fin[_]['evlat'])
             self.ev_rms.append(self.fin[_]['evrms'])
 
-        
+
         self.ev_lon = array(self.ev_lon)
         self.ev_lat = array(self.ev_lat)
         self.ev_rms = array(self.ev_rms)
-        
+
         init_plotting_isi(18,10)
-                                  
+
         ax1 = plt.axes([0.06, 0.45, .45, .5])
         [i.set_linewidth(0.6) for i in ax1.spines.itervalues()]
         ax1.tick_params(labelsize=6)
@@ -2897,10 +2896,10 @@ RESET TEST(91)=0.1
         dy  = ax1.get_ylim()
         dy  = dy[1] - dy[0]
         dy  = dy
-        fs  = 0.8*plt.rcParams['font.size']        
+        fs  = 0.8*plt.rcParams['font.size']
         scl = 250
         c   = self.ev_rms
-        
+
         im  = ax1.scatter(self.ev_lon,self.ev_lat,
                           c=c,marker='.',s=75,edgecolor='black',cmap=plt.cm.jet, vmin=0.0, vmax=self.max_rms)
         ax1.scatter(self.st_lon[0],self.st_lat[0],
@@ -2951,7 +2950,7 @@ RESET TEST(91)=0.1
         for i in sorted(self.ini):
 
             i_lon = self.ini[i]['evlon']
-            i_lat = self.ini[i]['evlat'] 
+            i_lat = self.ini[i]['evlat']
 
             for f in sorted(self.fin):
 
@@ -2960,10 +2959,10 @@ RESET TEST(91)=0.1
                 dx     = f_lon - i_lon
                 dy     = f_lat - i_lat
                 diff_h = sqrt(dx**2 + dy**2)
-                
+
                 diff_ot = i-f
                 diff_ot = abs(diff_ot.total_seconds())
-                
+
 
                 if diff_ot <= self.max_tdf and diff_h <= self.max_ldf:
 
@@ -2997,9 +2996,9 @@ RESET TEST(91)=0.1
         self.fin_erh = array(self.fin_erh)
         self.fin_erz = array(self.fin_erz)
 
-        
+
         # Plot Latitude Dislocation
-        
+
         ax2 = plt.axes([0.62, 0.70, .37, .23])
         [i.set_linewidth(0.6) for i in ax2.spines.itervalues()]
         ax2.tick_params(labelsize=6)
@@ -3021,18 +3020,18 @@ RESET TEST(91)=0.1
         ax2.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
 
         # Plot Longitude Dislocation
-        
+
         ax3 = plt.axes([0.62, 0.38, .37, .23])
         [i.set_linewidth(0.6) for i in ax3.spines.itervalues()]
         ax3.tick_params(labelsize=6)
-        
+
         for (x,xx) in zip(self.ini_lon,self.fin_lon):
-            
+
             if xx-x>0:
                 ax3.plot([x,x],[d2k(xx-x),0],'r-o',markevery=self.ini_lon.size, ms=3, lw=.5, mew=.1, mec='k')
             else:
                 ax3.plot([x,x],[d2k(xx-x),0],'b-o',markevery=self.ini_lon.size, ms=3, lw=.5, mew=.1, mec='k')
-                
+
         ax3.set_title('Longitude')
         ax3.set_ylabel('Dislocation (km)')
         ax3.set_ylim(-max([abs(_) for _ in ax3.get_ylim()]),max([abs(_) for _ in ax3.get_ylim()]))
@@ -3045,18 +3044,18 @@ RESET TEST(91)=0.1
         ax3.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
 
         # Plot Depth Dislocation
-        
+
         ax4 = plt.axes([0.62, 0.06, .37, .23])
         [i.set_linewidth(0.6) for i in ax4.spines.itervalues()]
         ax4.tick_params(labelsize=6)
-        
+
         for (x,xx) in zip(self.ini_dep,self.fin_dep):
-            
+
             if xx-x>0:
                 ax4.plot([x,x],[xx-x,0],'r-o',markevery=self.ini_dep.size, ms=3, lw=.5, mew=.1, mec='k')
             else:
                 ax4.plot([x,x],[xx-x,0],'b-o',markevery=self.ini_dep.size, ms=3, lw=.5, mew=.1, mec='k')
-                
+
         ax4.set_title('Depth (km)')
         ax4.set_ylabel('Dislocation (km)')
         ax4.set_ylim(-max([abs(_) for _ in ax4.get_ylim()]),max([abs(_) for _ in ax4.get_ylim()]))
@@ -3066,13 +3065,13 @@ RESET TEST(91)=0.1
         ax4.locator_params(axis='x',nbins=5)
         ax4.locator_params(axis='y',nbins=5)
         ax4.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
-        
+
         # Plot Horizontal Error
-        
+
         ax5 = plt.axes([0.06, 0.09, .14, .3])
         [i.set_linewidth(0.6) for i in ax5.spines.itervalues()]
         ax5.tick_params(labelsize=6)
-        
+
         bns = arange(0, self.max_her + 1, self.bin_her)
         ax5.hist([self.ini_erh,self.fin_erh],color=['r','b'],label=['Initial','Final'], histtype='bar', bins=bns, rwidth=0.8, edgecolor='k')
         ax5.set_xlabel('H_Error (km)')
@@ -3084,11 +3083,11 @@ RESET TEST(91)=0.1
         ax5.legend(loc=1,fontsize=5)
 
         # Plot Depth Error
-        
+
         ax6 = plt.axes([0.24, 0.09, .14, .3])
         [i.set_linewidth(0.6) for i in ax6.spines.itervalues()]
         ax6.tick_params(labelsize=6)
-        
+
         bns = arange(0, self.max_der + 1, self.bin_der)
         ax6.hist([self.ini_erz,self.fin_erz],color=['r','b'],label=['Initial','Final'], histtype='bar', bins=bns, rwidth=0.8, edgecolor='k')
         ax6.set_xlabel('Z_Error (km)')
@@ -3099,11 +3098,11 @@ RESET TEST(91)=0.1
         ax6.legend(loc=1,fontsize=5)
 
         # Plot RMS
-        
+
         ax7 = plt.axes([0.42, 0.09, .14, .3])
         [i.set_linewidth(0.6) for i in ax7.spines.itervalues()]
         ax7.tick_params(labelsize=6)
-        
+
         bns = arange(0, self.max_rms, self.bin_rms)
         ax7.hist([self.ini_rms,self.fin_rms],color=['r','b'],label=['Initial','Final'], histtype='bar',bins=bns, rwidth=0.8, edgecolor='k')
         ax7.set_xlabel('RMS (s)')
@@ -3113,11 +3112,11 @@ RESET TEST(91)=0.1
         ax7.grid(True, linestyle='--', linewidth=.5, color='k', alpha=.3)
         ax7.legend(loc=1,fontsize=5)
 
-        plt.savefig(path.join('figs',self.project_nm,'final_'+self.project_nm+'.tiff'))
+        plt.savefig(path.join('figs',self.project_nm,'final_'+self.project_nm+'.pdf'))
         plt.close()
 
         remove('velest.cmn')
-        
+
         print "+++ Finito!"
 
 #___________________ RUN
